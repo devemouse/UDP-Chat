@@ -1,0 +1,35 @@
+\chapter{Wstêp teoretyczny}
+\label{cha:protokol_udp}
+
+\section{Protokó³ UDP}
+UDP (ang. User Datagram Protocol) jest jednym z~elementów TCP/IP. Przy pomocy UDP, programy komputerowe mog¹ wysy³aæ komunikaty (zwane datagramami), do innych hostów. UDP jest protoko³em pakietowym, czyli nie wymaga zestawiania specjalnego kana³u komunikacyjnego. 
+
+UDP u¿ywa prostej transmisji bez tzw hand-shake. UDP jest zawodny, datagramy mog¹ dochodziæ w~z³ej kolejnoœci, mog¹ byæ duplikowane lub utracone bez ¿adnej informacji. Protokó³ zak³ada, ¿e korekcja albo nie jest potrzebna albo robiona jest w~aplikacji, unikaj¹c dodatkowego nak³adu na obs³ugê interfejsu sieciowego. Aplikacje czasu rzeczywistego czêsto u¿ywaj¹ UDP, poniewa¿ dla nich lepiej jest opuœciæ jeden pakiet ni¿ czekaæ na nadejœcie spóŸnionego. Gdy korekcja b³êdów jest niezbêdna na poziomie interfejsu sieciowego, aplikacje powinny u¿ywaæ TCP lub SCTP, które s¹ w³aœnie do tego celu zaprojektowane.
+
+UDP jest te¿ u¿yteczny dla serwerów, które musz¹ odpowiadaæ ma³¹ iloœci¹ danych do ogromnej iloœci klientów. Inaczej ni¿ w~TCP, UDP umo¿liwia transmisj¹ typu broadcast (do wszystkich w~sieci) i~multicast (do wielu hostów).
+
+UDP jest u¿ywane przez DNS (Domain Name System), audio/video stream, VoIP (Voice over IP) oraz w~wielu grach.
+
+
+\section{Porty}
+
+Aplikacje wykorzystuj¹ce UDP u¿ywaj¹ socketów do zestawiania komunikacji pomiêdzy hostami. Sockety dowi¹zuj¹ aplikacjê z~portami serwisowymi, które s³u¿¹ jako ostatnie punkty transmisji danych. Port to struktura jêzyka C~identyfikowana 16-sto bitowym numerem (czyli dozwolone wartoœci pochodz¹ z~zakresu 0..65535) Port 0 jest zarezerwowany ale jest dozwolone jego u¿ycia przez aplikacjê w~przypadku gdy nie spodziewa siê ona odpowiedzi. 
+
+Porty 1 do 1023 s¹ portami dedykowanymi. Na systemach Unixowych, ³¹czenie z~tymi portami wymaga praw roota.
+
+Porty 1024 do 49151 to porty zarejestrowane.
+
+Porty 49152 do 65535 u¿ywane s¹ przez aplikacje klienckie do tymczasowych po³¹czeñ z~serwerem.
+
+\section{Protokó³ IP}
+Protokó³ Internetowy IP (ang. Internet Protocol) jest u¿ywany do komunikacji poprzez sieæ pakietow¹.
+
+IP to g³ównie protokó³ warstwy Internet Pakietu IP (Internet Protocol Suite) i~ma za zadanie dostarczaæ unikalne datagramy (pakiety) z~IP hosta-Ÿród³a do komputera docelowego tylko bazuj¹c na ich adresach. Do tego celu IP definiuje metody adresowania oraz struktury pakowania datagramów (pakietów). Pierwsza g³ówna wersja struktury adresowania, nazywana teraz IPv4, wci¹¿ dominuje w~internecie, pomimo ¿e jego nastêpca IPv6 jest aktywnie wdra¿any na ca³ym œwiecie.
+
+
+Dane z~warstw wy¿szych protoko³u s¹ pakowane w~pakiety/datagramy. Zestawianie fizycznego po³¹czenia nie jest potrzebne tu¿ przed wys³aniem pakietów przez jednego hosta do drugiego. IP jest, w~przeciwieñstwie do tradycyjnej telefonii gdzie po³¹czenie musi byæ zestawiane przed ka¿d¹ rozmow¹, protoko³em pakietowym (przez co bezpo³¹czeniowym). 
+
+Dziêki abstrakcji jak¹ oferuje protokó³, IP mo¿e byæ u¿ywany w~sieciach heterogenicznych tzn sieæ mo¿e siê sk³adaæ z~Ethernetu, ATM, FDDI, Wi-Fi i~innych. Ka¿da warstwa po³¹czenia mo¿e mieæ swoj¹ w³asn¹ metodê adresowania (lub te¿ nie mieæ jej wcale) oraz analogicznie potrzebê znalezienia adresu docelowego do zrealizowania po³¹czenia. Znajdowanie adresu jest realizowane poprzez Protokó³ Znajdowania Adresu (ang. Adress Resolution Protocol, ARP) dla IPv4 oraz Protokó³ Odkrywania S¹siadów (ang.  Neighbor Discovery Protocol, NDP) dla IPv6.
+
+
+

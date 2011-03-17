@@ -1,0 +1,54 @@
+\documentclass[12pt, a4paper, titleauthor, oneside]{mwrep}
+%\usepackage{polski}
+\usepackage[polish]{babel} 
+\usepackage{textcomp}
+\usepackage{color}
+\usepackage[cp1250]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{graphicx}
+
+
+\lstset{
+	language=[ANSI]C,
+	keywordstyle=\bfseries\ttfamily\color[rgb]{0,0,1},
+	identifierstyle=\ttfamily,
+	commentstyle=\color[rgb]{0.133,0.545,0.133},
+	stringstyle=\ttfamily\color[rgb]{0.627,0.126,0.941},
+	showstringspaces=false,
+	basicstyle=\footnotesize,
+	numberstyle=\footnotesize,
+	numbers=left,
+	stepnumber=1,
+	numbersep=10pt,
+	tabsize=2,
+	breaklines=true,
+	prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+	breakatwhitespace=false,
+	aboveskip={1.5\baselineskip},
+   columns=fixed,
+   extendedchars=true,
+  upquote=true,
+ frame=single,
+% backgroundcolor=\color{lbcolor},
+}
+
+
+
+\begin{document}
+
+\input{front.tex}
+
+\part{Dokumentacja}
+\input{wstep.tex}
+\input{udp.tex}
+\input{code.tex}
+
+\appendix
+
+\part{Dodatki}
+\input{listing.tex}
+
+
+\end{document}
+

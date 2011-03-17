@@ -1,0 +1,19 @@
+\chapter{Wstêp}
+\label{cha:wstep}
+
+Program, zgodnie z~nazw¹, jest prost¹ aplikacj¹ realizuj¹c¹ podstawowe za³o¿enia chatu.
+Po uruchomieniu programu, wyœwietla siê okno z~czterema polami tekstowymi (patrz Rys. \ref{fig:main}). W~Tytule programu mo¿emy zobaczyæ do jakiego hosta bêdziemy wysy³aæ wiadomoœci.
+ Pierwsze pole tekstowe s³u¿y do zmiany hosta docelowego (wystarczy wpisaæ ¿¹dany adres i~nacisn¹æ Enter). Druga kontrolka stanowi listê wiadomoœci wys³anych i~odebranych w~programie. W~trzecim polu u¿ytkownik powinien wpisaæ nazwê któr¹ siê identyfikuje. Aby wys³aæ komunikat nale¿y umieœciæ kursor w~ostatnim polu, wpisaæ go i~nacisn¹æ enter.
+
+ Program wysy³a wiadomoœci poprzez UDP w~funkcji obs³uguj¹cej komunikaty Windows. Odbieranie komunikatów realizowane jest w~osobnym w¹tku. Program nas³uchuje na porcie 13 z~wszystkich adresów wszelkich komunikatów i~wyœwietla je w~polu drugim.
+
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.65]{gfx/main}
+\caption{G³ówne okno programu.}
+\label{fig:main}
+\end{figure}
+
+

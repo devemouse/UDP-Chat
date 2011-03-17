@@ -1,0 +1,12 @@
+*.*~
+*.*bak*
+*.*swp
+*.err
+*.obj
+*.o
+*.manifest*
+*.exe
+tags
+__Tag_List__*
+.svn
+

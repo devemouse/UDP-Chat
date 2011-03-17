@@ -1,0 +1,230 @@
+\chapter{Kod Ÿród³owy}
+\label{cha:code}
+
+Ca³y program oparty jest na podstawowych funkcjach dostêpnych w~WinApi oraz bibliotece Winsock. Ca³y program znajduje siê w~pliku \verb|main.cpp|, w~którym znajduj¹ siê funkcje:
+\begin{description}
+\item [WinMain] jest g³ówn¹ funkcj¹ programu przyjmuj¹c¹ standardowe parametry jak dla ka¿dego programu okienkowego opartego o~WinApi.
+\item [TextWindowProcedure] to funkcja przechwytuj¹ca naciœniêcia przycisków. Jest ona u¿yta do obs³ugi pól tekstowych z~adresem hosta i~polem wpisywania wiadomoœci. Po wykryciu ¿e w~polu tekstowym naciœniêty zosta³ jakiœ przycisk, wywo³ywana jest funkcja MainWindowProcedure, w~pozosta³ych przypadkach domyœlna procedura obs³ugi okna.
+\item [MainWindowProcedure] zawiera ca³¹ funkcjonalnoœæ obs³ugi komunikatów. W~niej interpretowane s¹ przyciœniêcia klawisza \verb|Enter| oraz wszystkich pozosta³ych obs³ugiwanych komunikatów.
+\item [ResizeComponents] dba o~to by wszystkie komponenty by³y zawsze prawid³owo rozmieszczone w~oknie nadaj¹ komponentom rozmiary proporcjonalne do nowej wielkoœci okna.
+\item [WinSockInit] inicjuje bibliotek¹ winsock. Szerzej funkcja opisana jest w~sekcji \ref{ssec:WinSockInit}.
+\item [UDPListenerThreadFunction|] to g³ówna funkcja w¹tku odpowiadaj¹cego za nas³uchiwanie. Patrz sekcja \ref{ssec:UDPListenerThreadFunction}.
+\item [addressOf] prosta funkcja pobieraj¹ca adres IP hosta. Pe³ny opis funkcji w~sekcji \ref{ssec:addressOf}.
+
+%\item [\verb|WinMain|]  jest g³ówn¹ funkc¹ programu przyjmuj¹c¹ standardowe parametry jak dla ka¿dego programu okienkowego opartego o~WinApi.
+%\item [\verb|TextWindowProcedure|] to funkcja przechwytuj¹ca naciœniêcia przycisków. Jest ona u¿yta do obs³ugi pól tekstowych z~adresem hosta i~polem wpisywania wiadomoœci. Po wykryciu ¿e w~polu tekstowym naciœniêty zosta³jakiœ przycisk, wywo³ywana jest funkcja MainWindowProcedure, w~pozosta³ych przypadkach domyœlna procedura obs³ugi okna.
+%\item [\verb|MainWindowProcedure|] zawiera ca³¹ funkcjonalnoœæ obs³ugi komunikatów. W~niej interpretowane s¹ przyciœniêcia klawisza \verb|Enter| oraz wszystkich pozosta³ych obs³ugiwanych komunikatów.
+%\item [\verb|ResizeComponents|] dba o~to by wszystkie komponenty by³y zawsze prawid³owo rozmieszczone w~oknie nadaj¹ komponentom rozmiary proporcjonalne do nowej wielkoœci okna.
+%\item [\verb|WinSockInit|] inicjalizuje bibliotek¹ winsock. Szerzej funkcja opisana jest w~sekcji \ref{ssec:WinSockInit}.
+%\item [\verb|UDPListenerThreadFunction|] to g³ówna funkcja w¹tku odpowiadaj¹cego za nas³uchiwanie. Patrz sekcja \ref{ssec:UDPListenerThreadFunction}.
+%\item [\verb|addressOf|] prosta funkcja pobieraj¹ca adres IP hosta. Pe³ny opis funkcji w~sekcji \ref{ssec:addressOf}.
+\end{description}
+
+\section{Zmienne globalne}
+\label{sec:globals}
+
+W programie wystêpuje kilka zmiennych globalnych takich jak bufory, numery handle okien, nazwa programu. Spoœród nich dwie zmienne globalne dotycz¹ tematu UDP (patrz Listing \ref{code:globalVariables}):
+\begin{description}
+  \item[sa] reprezentuje adres IP do którego bêdziemy wysy³aæ komunikaty. Zmienna jest typu \verb|sockaddr_in| i~przechowuje:
+    \begin{itemize}
+      \item rodzinê adresowania (w naszym przypadku jest to AF\_INET), 
+      \item numer portu (13)
+      \item adres IP (w postaci unii typu \verb|in_addr|).
+    \end{itemize}
+  \item[soc] przechowuje numer o~socketa, którego u¿ywamy do wysy³ania komunikatów. Jest typu \verb|SOCKET|, co sprowadza siê do \verb|unsigned int|.
+\end{description}
+Obie zmienne s¹ globalne poniewa¿ s¹ u¿ywane w~funkcjach \verb|WinMain| oraz \verb|MainWindowProcedure|. W~pierwszej funkcji obie s¹ inicjowane. W~drugiej obie s¹ u¿ywane podczas wywo³ania funkcji \verb|sendto|. Dodatkowo zmienna \verb|sa| jest aktualizowana podczas zmiany hosta.
+
+\begin{lstlisting}[caption={globalVariables}, label=code:globalVariables]
+struct sockaddr_in sa;
+SOCKET soc;
+\end{lstlisting}
+
+
+\section{Funkcje}
+Spoœród wielu instrukcji zawartych w~funkcjach, opisane zostan¹ tylko te dotycz¹ce komunikacji z~u¿yciem protoko³u UDP. Na pocz¹tku ka¿dej sekcji znajduje siê listing opisywanej czêœci programu.
+
+\subsection{WinMain}
+\label{ssec:winmain}
+
+\begin{lstlisting}[caption={WinMain}, label=code:WinMain]
+soc = socket(PF_INET, SOCK_DGRAM, 0);
+
+char  host[200];
+sprintf(host, "127.0.0.1");          //loopback
+
+sa.sin_port = htons(13);
+sa.sin_family = AF_INET;
+sa.sin_addr.s_addr = addressOf(host);
+\end{lstlisting}
+
+
+Linia 1 inicjuje socket w~systemie. U¿ywamy rodziny protoko³u PF\_INET. Jako typ transmisji wybieramy SOCK\_DGRAM. Trzeci parametr pozwala sprecyzowaæ, który z~wszystkich dostêpnych protoko³ów danego typu w~danej rodzinie chcemy wybraæ, podaj¹c 0 ¿¹damy domyœlnego protoko³u.
+
+
+W liniach 3-8 inicjujemy strukturê adresu docelowego. Do zmiennej \verb|host| wpisujemy adres "127.0.0.1" co oznacza interfejs zwrotny. Wszystkie wys³ane pakiety odbierzemy z~powrotem poprzez w¹tek nas³uchuj¹cy. Wybieramy port 13, rodzinê adresowania AF\_INET. Nastêpnie u¿ywamy funkcji \verb|addressOf| by pobraæ wartoœæ numeryczn¹ adresu IP.
+
+
+
+\subsection{MainWindowProcedure}
+\label{ssec:mainwindowprocedure}
+
+
+\begin{lstlisting}[caption={MainWindowProcedure}, label=code:MainWindowProcedure]
+DWORD e;
+/* send the message */
+e = sendto(soc, BuforT, nameLen + dlugoscT + 1, 0, (struct sockaddr *) & sa, sizeof (sa));
+
+if (e == SOCKET_ERROR) {
+   MessageBox(hMainWindow, "Sendto Failed", "Error",MB_OK | MB_ICONERROR );
+}
+
+...
+
+temp = addressOf(BuforT);
+if (INADDR_NONE != temp)
+{
+   /* change the destination adress */
+   sa.sin_addr.s_addr = temp;
+   /* update the window title */
+   strcat(BuforT, " - ");
+   strcat(BuforT, WINDOW_NAME);
+   SetWindowText(hMainWindow, BuforT);
+}
+\end{lstlisting}
+
+Pierwsza czêœæ listingu \ref{code:MainWindowProcedure} pokazuje jak realizowane jest wysy³anie komunikatów to hosta. Po pobraniu tekstu z~pola tekstowego wywo³ywana jest funkcja \verb|sendto| wysy³aj¹ca komunikat (BuforT o~d³ugoœci nameLen + dlugoscT + 1), do hosta (sa), przy u¿yciu socketu (soc). Listing \ref{code:sendto} pokazuje deklaracjê funkcji sendo. I~tak:
+\begin{description}
+  \item[SOCKET s] oznacza numer gniazdka, który ma zostaæ u¿yty,
+  \item[const char *buf] to wskaŸnik na bufor z~danymi do wys³ania,
+  \item[int len] mówi o~iloœci bajtów, które maj¹ byæ z~wys³ane,
+  \item[int flags] przez ten parametr mo¿na przekazaæ flagi modyfikuj¹ce dzia³anie funkcji,
+  \item[const struct sockaddr *to] jest wskaŸnikiem na strukturê zawieraj¹c¹ adres, port, oraz typ adresowania,
+  \item[int tolen] jest d³ugoœci¹ (w bajtach) struktury wskazywanej prze \verb|to|.
+\end{description}
+
+\begin{lstlisting}[caption={Deklaracja funkcji sendto}, label=code:sendto]
+int sendto(
+  __in  SOCKET s,
+  __in  const char *buf,
+  __in  int len,
+  __in  int flags,
+  __in  const struct sockaddr *to,
+  __in  int tolen
+);  
+\end{lstlisting}
+
+Druga czêœæ listingu \ref{code:MainWindowProcedure} zawiera czêœæ kodu zmieniaj¹c¹ adres wysy³kowy. Ten kawa³ek programu jest wywo³ywany po naciœniêciu klawisz enter w~polu nazwy hosta. W~linii 11 znajduje siê wywo³anie funkcji \verb|addressOf| zwracaj¹cej adres IP hosta docelowego w~postaci liczbowej. Je¿eli adres zosta³ poprawnie znaleziony (linia 12) nastêpuje zmiana adresu (linia 15) oraz zmiana tytu³u okna (linie 7-9).
+
+
+\section{Funkcja WinSockInit}
+\label{ssec:WinSockInit}
+
+\begin{lstlisting}[caption={WinSockInit}, label=code:WinSockInit]
+int WinSockInit() {
+   int retVal = 0;
+   WORD version = MAKEWORD(1, 1);
+   WSADATA wsaData;
+
+   retVal = WSAStartup(version, &wsaData);
+
+   if (0 != retVal) {
+      MessageBox(hMainWindow, "Init Failed", "Error",MB_OK | MB_ICONERROR );
+   }
+
+   return retVal;
+}
+\end{lstlisting}
+
+Funkcja ta ma za zadanie ,,podnieœæ'' bibliotekê winsock (patrz Listing \ref{code:WinSockInit}). Najpierw wybieramy wersjê 1.1 biblioteki (linia 3). Nastêpnie wywo³ujemy funkcjê \verb|WSAStartup| (linia 6). Gdy nie uda³o siê podnieœæ biblioteki, wyœwietlamy stosowny komunikat (linie 8-10).
+
+\subsection{addressOf}
+\label{ssec:addressOf}
+
+\begin{lstlisting}[caption={addressOf}, label=code:addressOf]
+u_long addressOf(const char * addrStr)
+{
+   u_long retVal;
+   struct hostent* phe;
+
+   char* p1;
+   char* p2;
+
+   retVal = inet_addr(addrStr);
+   if (INADDR_NONE == retVal)
+   {
+      phe = gethostbyname(addrStr);
+
+      if (NULL == phe)
+      {
+         MessageBox(hMainWindow, "Nie znalalem hosta", "Error",MB_OK | MB_ICONERROR );
+      }
+      else
+      {
+
+         p1 = (char *) & retVal;
+         p2 = &phe->h_addr[0];
+
+         for (int i=0; i<sizeof(retVal); i++) 
+         {
+            p1[i]=p2[i];
+         }
+      }
+   }
+
+   return retVal;
+}
+\end{lstlisting}
+
+
+Funkcja przyjmuje jako parametr wskaŸnik na ci¹g znaków zakoñczony '\\0', który stara siê zamieniæ na numeryczn¹ wartoœæ z~adresem IP. W~linii 9 zak³ada siê, ¿e w~buforze wejœciowym znajduje siê adres IP w~gotowej postaci (np ,,127.0.0.1''). Je¿eli nie (tzn funkcja \verb|inet_addr| zwróci \verb|INADDR_NONE|) wywo³ywana jest funkcja \verb|gethostbyname|. Gdy host zostanie poprawnie znaleziony, adres IP jest kopiowany ze struktury hostent do zmiennej retVal i~zwracany.
+
+
+\subsection{UDPListenerThreadFunction}
+\label{ssec:UDPListenerThreadFunction}
+
+\begin{lstlisting}[caption={UDP server}, label=code:server]
+struct sockaddr_in A;
+int s, d;
+
+A.sin_family = AF_INET;
+A.sin_port = htons(13);
+A.sin_addr.s_addr = INADDR_ANY;
+
+s = socket(AF_INET, SOCK_DGRAM, 0);
+
+d = bind(s, (struct sockaddr *) & A, sizeof (A));
+
+...
+
+while(1)
+{
+  memset(inBuf,0,100);
+  d = recvfrom(s, &inBuf[2], 100, 0, (sockaddr *) & A, &dw);
+
+  ...
+
+}
+\end{lstlisting}
+
+Pokazana czêœæ programu (listing \ref{code:server} w~uproszczeniu pokazuje zasadê dzia³ania tej funkcji. Linie 1-6 inicjuj¹ strukturê \verb|A| rodzin¹ adresow¹ AF\_INET, portem 13. Adresem w~tym przypadku jest INADDR\_ANY (0) co oznacza, ¿e bêd¹ przyjmowany komunikaty ze wszystkich adresów IP (w tym loopback).
+
+Utworzenie nowego socketu odbiorczego (o takich samych parametrach jak socket odbiorczy zadeklarowany wczeœniej) znajduje siê w~linii 8.
+
+W linii 10 jest wywo³anie funkcji \verb|bind| wi¹¿¹cej socket \verb|s| z~adresem \verb|A|. Po wywo³aniu tej funkcji, nasz program nas³uchuje na sockecie \verb|s| wiadomoœci przychodz¹cych z~adresu \verb|A|.
+
+Linia 14 i~dalsze pokazuj¹ (obrazowo) jak realizowane jest nas³uchiwanie na porcie. Pêtla nieskoñczona najpierw czyœci bufor odbiorczy, nastêpnie wywo³ujê funkcjê \verb|recvfrom|. W¹tek tak d³ugo ,,wisi'' w~tej funkcji a¿ nie otrzyma porcji danych. Z~listingu \ref{code:recvfrom} widaæ, ¿e parametry funkcji s¹ praktycznie tego samego typu co w~\verb|sentdo| z~t¹ ró¿nic¹, ¿e parametry \verb|buf| oraz \verb|from| s¹ wyjœciowe.
+
+\begin{lstlisting}[caption={Deklaracja funkcji recvfrom}, label=code:recvfrom]
+int recvfrom(
+  __in         SOCKET s,
+  __out        char *buf,
+  __in         int len,
+  __in         int flags,
+  __out        struct sockaddr *from,
+  __inout_opt  int *fromlen
+);
+\end{lstlisting}
+
+
+
