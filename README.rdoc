@@ -1,0 +1,11 @@
+= UDP Chat
+
+This is simple Windows chat application I wrote as small project during course of my studies.
+
+The application windows I programmed using WinAPI directly.
+
+Whole communication is running as you might expect over UDP. The sender part and window handling is done in singal handlers.  Server part that listenes for incoming messages is running in separate thread.
+
+More info you can find in doc/Sprawozdanie.pdf which is in Polish. I wrote the application only for training purpouses and I do not plan to develop it further.
+
+
